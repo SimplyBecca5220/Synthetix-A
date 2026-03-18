@@ -1,11 +1,13 @@
-import { Activity, Shield, Cpu } from 'lucide-react';
+import { Activity, Shield, Cpu, ToggleLeft, ToggleRight } from 'lucide-react';
 
 interface HeaderProps {
   account: string | null;
   connectWallet: () => void;
+  isSimulationMode: boolean;
+  setIsSimulationMode: (mode: boolean) => void;
 }
 
-export default function Header({ account, connectWallet }: HeaderProps) {
+export default function Header({ account, connectWallet, isSimulationMode, setIsSimulationMode }: HeaderProps) {
   const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
   return (
@@ -43,6 +45,27 @@ export default function Header({ account, connectWallet }: HeaderProps) {
       </div>
       
       <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+        
+        {/* Toggle Mode Button */}
+        <button 
+          onClick={() => setIsSimulationMode(!isSimulationMode)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'transparent',
+            border: 'none',
+            color: isSimulationMode ? 'var(--accent-blue)' : 'var(--text-muted)',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: isSimulationMode ? 'bold' : 'normal'
+          }}
+          title="Enable Simulation Mode to test features without spending real gas"
+        >
+          {isSimulationMode ? <ToggleRight color="var(--accent-blue)" /> : <ToggleLeft />}
+          Simulation Mode {isSimulationMode ? 'ON' : 'OFF'}
+        </button>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '14px' }}>
           <Activity size={16} color="var(--mantle-green)" />
           <span>Status: <span style={{ color: 'var(--mantle-green)' }}>Active</span></span>
@@ -51,8 +74,9 @@ export default function Header({ account, connectWallet }: HeaderProps) {
           <Shield size={16} />
           <span>Risk: <span style={{ color: 'var(--success)' }}>Low</span></span>
         </div>
+        
         <button className="glow-border brand-font" style={{
-          background: account ? 'rgba(101, 179, 46, 0.1)' : 'transparent',
+          background: 'transparent',
           color: 'var(--mantle-green)',
           border: '1px solid var(--mantle-green)',
           padding: '8px 16px',
@@ -63,16 +87,12 @@ export default function Header({ account, connectWallet }: HeaderProps) {
         }}
         onClick={connectWallet}
         onMouseOver={(e) => {
-          if (!account) {
-            e.currentTarget.style.background = 'var(--mantle-green)';
-            e.currentTarget.style.color = 'var(--bg-dark)';
-          }
+          e.currentTarget.style.background = 'var(--mantle-green)';
+          e.currentTarget.style.color = 'var(--bg-dark)';
         }}
         onMouseOut={(e) => {
-          if (!account) {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'var(--mantle-green)';
-          }
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = 'var(--mantle-green)';
         }}>
           {account ? formatAddress(account) : 'Connect Wallet'}
         </button>

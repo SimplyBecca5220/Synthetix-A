@@ -18,36 +18,59 @@ const VAULT_ADDRESS = "0x539...001"; // Placeholder
 interface GraphProps {
   account: string | null;
   provider: ethers.BrowserProvider | null;
+  isSimulationMode: boolean;
 }
 
-export default function PortfolioGraph({ account, provider }: GraphProps) {
+export default function PortfolioGraph({ account, provider, isSimulationMode }: GraphProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [amount, setAmount] = useState<string>("0.1");
 
   const handleDeposit = async () => {
-    if (!account || !provider) {
+    if (!account) {
       alert("Please connect your wallet first.");
       return;
     }
+
+    if (!amount || Number(amount) <= 0) {
+      alert("Please enter a valid deposit amount.");
+      return;
+    }
+
+    const isConfirmed = window.confirm(
+      `Are you sure you want to deposit ${amount} MNT?\nMode: ${isSimulationMode ? "Simulation (Testnet)" : "LIVE"}`
+    );
+    if (!isConfirmed) return;
+
     try {
       setIsProcessing(true);
-      const signer = await provider.getSigner();
-      
-      // Minimal interaction to trigger Metamask signature for exact realism
-      // Assuming a generic ERC20 deposit format without full ABI for the demo
-      const amountToDeposit = ethers.parseEther("0.1");
-      const tx = await signer.sendTransaction({
-        to: VAULT_ADDRESS,
-        value: amountToDeposit
-      });
 
-      console.log("Transaction pending:", tx.hash);
-      await tx.wait(); // Wait for confirmation
-      alert(`Successfully deposited 0.1 MNT into Syn-A! TX: ${tx.hash}`);
+      if (isSimulationMode) {
+        // --- SIMULATION MODE ---
+        console.log("SIMULATION ON: Faking transaction payload...");
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        
+        const fakeHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
+        alert(`[SIMULATION ON] Dashboard dynamically triggered Deposit successfully! \nVirtual TX: ${fakeHash}`);
+      } else {
+        // --- LIVE MODE ---
+        if (!provider) throw new Error("Provider missing in Live mode.");
+        const signer = await provider.getSigner();
+        
+        const amountToDeposit = ethers.parseEther(amount);
+        const tx = await signer.sendTransaction({
+          to: VAULT_ADDRESS,
+          value: amountToDeposit
+        });
+
+        console.log("Transaction pending:", tx.hash);
+        await tx.wait(); // Wait for confirmation
+        alert(`Successfully deposited ${amount} MNT into Syn-A! TX: ${tx.hash}`);
+      }
 
     } catch (err: any) {
       console.error(err);
       if (err.code !== "ACTION_REJECTED") {
-        alert("Transaction failed. Make sure you are on a testing network.");
+        alert("Transaction failed on Live Network. Are you on Mantle Sepolia Testing Network with MNT funds?");
       }
     } finally {
       setIsProcessing(false);
@@ -59,18 +82,57 @@ export default function PortfolioGraph({ account, provider }: GraphProps) {
       alert("Please connect your wallet first.");
       return;
     }
-    alert("Withdrawal function initiated. (Smart Contract hook pending)");
+    
+    if (!amount || Number(amount) <= 0) {
+      alert("Please enter a valid amount to withdraw.");
+      return;
+    }
+
+    const isConfirmed = window.confirm(
+      `Are you sure you want to withdraw ${amount} MNT?\nMode: ${isSimulationMode ? "Simulation (Testnet)" : "LIVE"}`
+    );
+    if (!isConfirmed) return;
+    
+    if (isSimulationMode) {
+      alert(`[SIMULATION ON] Withdrawal of ${amount} MNT signature requested successfully.`);
+    } else {
+      alert(`Withdrawal function initiated for ${amount} MNT. Make sure you have gas to sign the Smart Contract tx!`);
+    }
   };
 
   return (
     <div className="glass-panel animate-slide-in" style={{ animationDelay: '0.3s', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
             <Wallet color="var(--mantle-green)" />
             <h2 className="brand-font" style={{ fontSize: '20px', margin: 0 }}>Your Portfolio</h2>
           </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            
+            <div style={{ position: 'relative' }}>
+              <input 
+                type="number" 
+                value={amount} 
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'var(--text-main)',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  width: '90px',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  fontSize: '14px',
+                }}
+              />
+              <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: 'var(--text-muted)' }}>MNT</span>
+            </div>
+
             <button 
               onClick={handleDeposit}
               disabled={isProcessing}
@@ -78,7 +140,8 @@ export default function PortfolioGraph({ account, provider }: GraphProps) {
                 display: 'flex', alignItems: 'center', gap: '6px',
                 background: 'var(--mantle-green)', color: 'var(--bg-dark)',
                 border: 'none', padding: '8px 16px', borderRadius: '4px',
-                cursor: isProcessing ? 'wait' : 'pointer', fontWeight: 'bold', fontSize: '13px'
+                cursor: isProcessing ? 'wait' : 'pointer', fontWeight: 'bold', fontSize: '13px',
+                boxShadow: isSimulationMode ? '0 0 10px rgba(74, 144, 226, 0.4)' : 'none'
               }}
             >
               <ArrowDownCircle size={16} />
@@ -113,25 +176,4 @@ export default function PortfolioGraph({ account, provider }: GraphProps) {
       </p>
 
       <div style={{ flex: 1, minHeight: '300px', marginLeft: '-20px' }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--mantle-green)" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="var(--mantle-green)" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-            <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
-            <Tooltip 
-              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-glow)', borderRadius: '8px', color: 'var(--text-main)' }}
-              itemStyle={{ color: 'var(--mantle-green)', fontWeight: 'bold' }}
-            />
-            <Area type="monotone" dataKey="value" stroke="var(--mantle-green)" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-}
+ 
