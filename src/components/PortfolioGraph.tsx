@@ -1,6 +1,7 @@
-
+import { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Wallet } from 'lucide-react';
+import { Wallet, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { ethers } from 'ethers';
 
 const data = [
   { name: 'Jan', value: 10.0 },
@@ -12,17 +13,95 @@ const data = [
   { name: 'Jul', value: 13.9 },
 ];
 
-export default function PortfolioGraph() {
+const VAULT_ADDRESS = "0x539...001"; // Placeholder
+
+interface GraphProps {
+  account: string | null;
+  provider: ethers.BrowserProvider | null;
+}
+
+export default function PortfolioGraph({ account, provider }: GraphProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleDeposit = async () => {
+    if (!account || !provider) {
+      alert("Please connect your wallet first.");
+      return;
+    }
+    try {
+      setIsProcessing(true);
+      const signer = await provider.getSigner();
+      
+      // Minimal interaction to trigger Metamask signature for exact realism
+      // Assuming a generic ERC20 deposit format without full ABI for the demo
+      const amountToDeposit = ethers.parseEther("0.1");
+      const tx = await signer.sendTransaction({
+        to: VAULT_ADDRESS,
+        value: amountToDeposit
+      });
+
+      console.log("Transaction pending:", tx.hash);
+      await tx.wait(); // Wait for confirmation
+      alert(`Successfully deposited 0.1 MNT into Syn-A! TX: ${tx.hash}`);
+
+    } catch (err: any) {
+      console.error(err);
+      if (err.code !== "ACTION_REJECTED") {
+        alert("Transaction failed. Make sure you are on a testing network.");
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!account) {
+      alert("Please connect your wallet first.");
+      return;
+    }
+    alert("Withdrawal function initiated. (Smart Contract hook pending)");
+  };
+
   return (
     <div className="glass-panel animate-slide-in" style={{ animationDelay: '0.3s', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Wallet color="var(--mantle-green)" />
-          <h2 className="brand-font" style={{ fontSize: '20px', margin: 0 }}>Your Portfolio</h2>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <Wallet color="var(--mantle-green)" />
+            <h2 className="brand-font" style={{ fontSize: '20px', margin: 0 }}>Your Portfolio</h2>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button 
+              onClick={handleDeposit}
+              disabled={isProcessing}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                background: 'var(--mantle-green)', color: 'var(--bg-dark)',
+                border: 'none', padding: '8px 16px', borderRadius: '4px',
+                cursor: isProcessing ? 'wait' : 'pointer', fontWeight: 'bold', fontSize: '13px'
+              }}
+            >
+              <ArrowDownCircle size={16} />
+              {isProcessing ? 'Confirming...' : 'Deposit'}
+            </button>
+            <button 
+              onClick={handleWithdraw}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                background: 'transparent', color: 'var(--text-main)',
+                border: '1px solid rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: '4px',
+                cursor: 'pointer', fontSize: '13px'
+              }}
+            >
+              <ArrowUpCircle size={16} />
+              Withdraw
+            </button>
+          </div>
         </div>
+
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Net Value ($mETH)</div>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
             <span>13.90</span>
             <span style={{ fontSize: '14px', color: 'var(--success)' }}>+39.0%</span>
           </div>
@@ -46,7 +125,7 @@ export default function PortfolioGraph() {
             <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
             <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
             <Tooltip 
-              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-glow)', borderRadius: '8px', color: 'var(--text-main)', display: 'flex' }}
+              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-glow)', borderRadius: '8px', color: 'var(--text-main)' }}
               itemStyle={{ color: 'var(--mantle-green)', fontWeight: 'bold' }}
             />
             <Area type="monotone" dataKey="value" stroke="var(--mantle-green)" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />

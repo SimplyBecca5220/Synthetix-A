@@ -1,7 +1,13 @@
-
 import { Activity, Shield, Cpu } from 'lucide-react';
 
-export default function Header() {
+interface HeaderProps {
+  account: string | null;
+  connectWallet: () => void;
+}
+
+export default function Header({ account, connectWallet }: HeaderProps) {
+  const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+
   return (
     <header style={{
       display: 'flex',
@@ -46,7 +52,7 @@ export default function Header() {
           <span>Risk: <span style={{ color: 'var(--success)' }}>Low</span></span>
         </div>
         <button className="glow-border brand-font" style={{
-          background: 'transparent',
+          background: account ? 'rgba(101, 179, 46, 0.1)' : 'transparent',
           color: 'var(--mantle-green)',
           border: '1px solid var(--mantle-green)',
           padding: '8px 16px',
@@ -55,15 +61,20 @@ export default function Header() {
           transition: 'all 0.3s ease',
           fontSize: '14px'
         }}
+        onClick={connectWallet}
         onMouseOver={(e) => {
-          e.currentTarget.style.background = 'var(--mantle-green)';
-          e.currentTarget.style.color = 'var(--bg-dark)';
+          if (!account) {
+            e.currentTarget.style.background = 'var(--mantle-green)';
+            e.currentTarget.style.color = 'var(--bg-dark)';
+          }
         }}
         onMouseOut={(e) => {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = 'var(--mantle-green)';
+          if (!account) {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'var(--mantle-green)';
+          }
         }}>
-          Connect Wallet
+          {account ? formatAddress(account) : 'Connect Wallet'}
         </button>
       </div>
     </header>
