@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Wallet, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { Wallet, ArrowDownCircle, ArrowUpCircle, X } from 'lucide-react';
 import { ethers } from 'ethers';
 
 const data = [
@@ -13,7 +13,8 @@ const data = [
   { name: 'Jul', value: 13.9 },
 ];
 
-const VAULT_ADDRESS = "0x539...001"; // Placeholder
+// Fixed the invalid mock address length to prevent ethers.js validation crashes in Live mode
+const VAULT_ADDRESS = "0x5390000000000000000000000000000000000001";
 
 interface GraphProps {
   account: string | null;
@@ -24,23 +25,32 @@ interface GraphProps {
 export default function PortfolioGraph({ account, provider, isSimulationMode }: GraphProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [amount, setAmount] = useState<string>("0.1");
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState<'deposit' | 'withdraw'>('deposit');
 
-  const handleDeposit = async () => {
+  const initiateTransaction = (type: 'deposit' | 'withdraw') => {
     if (!account) {
       alert("Please connect your wallet first.");
       return;
     }
-
     if (!amount || Number(amount) <= 0) {
-      alert("Please enter a valid deposit amount.");
+      alert("Please enter a valid amount.");
       return;
     }
+    setModalType(type);
+    setShowModal(true);
+  };
 
-    const isConfirmed = window.confirm(
-      `Are you sure you want to deposit ${amount} MNT?\nMode: ${isSimulationMode ? "Simulation (Testnet)" : "LIVE"}`
-    );
-    if (!isConfirmed) return;
+  const handleConfirm = async () => {
+    setShowModal(false);
+    if (modalType === 'deposit') {
+        await executeDeposit();
+    } else {
+        await executeWithdraw();
+    }
+  };
 
+  const executeDeposit = async () => {
     try {
       setIsProcessing(true);
 
@@ -70,29 +80,14 @@ export default function PortfolioGraph({ account, provider, isSimulationMode }: 
     } catch (err: any) {
       console.error(err);
       if (err.code !== "ACTION_REJECTED") {
-        alert("Transaction failed on Live Network. Are you on Mantle Sepolia Testing Network with MNT funds?");
+        alert("Transaction failed on Live Network. Error: " + (err.message || "Are you on Mantle Sepolia Testing Network with MNT funds?"));
       }
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleWithdraw = async () => {
-    if (!account) {
-      alert("Please connect your wallet first.");
-      return;
-    }
-    
-    if (!amount || Number(amount) <= 0) {
-      alert("Please enter a valid amount to withdraw.");
-      return;
-    }
-
-    const isConfirmed = window.confirm(
-      `Are you sure you want to withdraw ${amount} MNT?\nMode: ${isSimulationMode ? "Simulation (Testnet)" : "LIVE"}`
-    );
-    if (!isConfirmed) return;
-    
+  const executeWithdraw = async () => {
     if (isSimulationMode) {
       alert(`[SIMULATION ON] Withdrawal of ${amount} MNT signature requested successfully.`);
     } else {
@@ -134,7 +129,7 @@ export default function PortfolioGraph({ account, provider, isSimulationMode }: 
             </div>
 
             <button 
-              onClick={handleDeposit}
+              onClick={() => initiateTransaction('deposit')}
               disabled={isProcessing}
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
@@ -148,7 +143,7 @@ export default function PortfolioGraph({ account, provider, isSimulationMode }: 
               {isProcessing ? 'Confirming...' : 'Deposit'}
             </button>
             <button 
-              onClick={handleWithdraw}
+              onClick={() => initiateTransaction('withdraw')}
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 background: 'transparent', color: 'var(--text-main)',
@@ -195,6 +190,59 @@ export default function PortfolioGraph({ account, provider, isSimulationMode }: 
           </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Confirmation Modal */}
+      {showModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div className="glass-panel animate-slide-in" style={{
+            background: 'var(--bg-card)', width: '100%', maxWidth: '400px',
+            border: '1px solid var(--border-glow)', borderRadius: '12px',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 className="brand-font" style={{ margin: 0, fontSize: '18px', color: 'var(--text-main)' }}>
+                 Confirm {modalType === 'deposit' ? 'Deposit' : 'Withdrawal'}
+              </h3>
+              <button 
+                onClick={() => setShowModal(false)} 
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '24px', color: 'var(--text-main)' }}>
+              <p style={{ marginBottom: '16px', fontSize: '15px' }}>
+                You are about to {modalType} <strong style={{color: 'var(--mantle-green)'}}>{amount} MNT</strong>.
+              </p>
+              <div style={{ padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>
+                <strong>Network Mode:</strong> <span style={{ color: isSimulationMode ? 'var(--accent-blue)' : 'var(--danger)' }}>{isSimulationMode ? "Simulation (Testnet)" : "LIVE"}</span><br/><br/>
+                {isSimulationMode ? "This is a simulated transaction and will not cost real gas." : "This will consume real gas on the network and execute a smart contract transaction."}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => setShowModal(false)} 
+                style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--text-muted)', color: 'var(--text-main)', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleConfirm} 
+                style={{ flex: 1, padding: '10px', background: 'var(--mantle-green)', border: 'none', color: 'var(--bg-dark)', fontWeight: 'bold', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                Confirm Submittal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
