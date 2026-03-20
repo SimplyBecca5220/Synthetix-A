@@ -87,6 +87,80 @@ h1, h2, h3, h4, h5, h6, .brand-font {
   }
 }
 
+/* Responsive adjustments */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 40px;
+  border-bottom: 1px solid var(--border-glow);
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-actions {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.portfolio-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.portfolio-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.portfolio-stats {
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+  }
+  .app-header > div:first-child {
+    justify-content: center;
+  }
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+  .header-hide-mobile {
+    display: none !important;
+  }
+  .layout-grid {
+    padding: 12px;
+  }
+  .portfolio-header-top {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .portfolio-stats {
+    text-align: left;
+    width: 100%;
+  }
+  .portfolio-stats > div:last-child {
+    justify-content: flex-start !important;
+  }
+  .portfolio-actions {
+    flex-wrap: wrap;
+  }
+}
+
 /* Terminal animations */
 @keyframes blink {
   0%, 100% { opacity: 1; }

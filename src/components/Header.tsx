@@ -11,18 +11,7 @@ export default function Header({ account, connectWallet, isSimulationMode, setIs
   const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
   return (
-    <header style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '20px 40px',
-      borderBottom: '1px solid var(--border-glow)',
-      background: 'var(--bg-card)',
-      backdropFilter: 'blur(10px)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-    }}>
+    <header className="app-header">
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div style={{
           width: '40px',
@@ -44,7 +33,7 @@ export default function Header({ account, connectWallet, isSimulationMode, setIs
         </div>
       </div>
       
-      <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+      <div className="header-actions">
         
         {/* Toggle Mode Button */}
         <button 
@@ -66,11 +55,11 @@ export default function Header({ account, connectWallet, isSimulationMode, setIs
           Simulation Mode {isSimulationMode ? 'ON' : 'OFF'}
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '14px' }}>
+        <div className="header-hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '14px' }}>
           <Activity size={16} color="var(--mantle-green)" />
           <span>Status: <span style={{ color: 'var(--mantle-green)' }}>Active</span></span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '14px' }}>
+        <div className="header-hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '14px' }}>
           <Shield size={16} />
           <span>Risk: <span style={{ color: 'var(--success)' }}>Low</span></span>
         </div>

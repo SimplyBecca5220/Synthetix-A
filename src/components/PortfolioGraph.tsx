@@ -102,13 +102,13 @@ export default function PortfolioGraph({ account, provider, isSimulationMode }: 
 
   return (
     <div className="glass-panel animate-slide-in" style={{ animationDelay: '0.3s', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div className="portfolio-header-top">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
             <Wallet color="var(--mantle-green)" />
             <h2 className="brand-font" style={{ fontSize: '20px', margin: 0 }}>Your Portfolio</h2>
           </div>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div className="portfolio-actions">
             
             <div style={{ position: 'relative' }}>
               <input 
@@ -162,7 +162,7 @@ export default function PortfolioGraph({ account, provider, isSimulationMode }: 
           </div>
         </div>
 
-        <div style={{ textAlign: 'right' }}>
+        <div className="portfolio-stats">
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Net Value ($mETH)</div>
           <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
             <span>13.90</span>
