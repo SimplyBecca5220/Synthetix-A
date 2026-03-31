@@ -48,15 +48,15 @@ The core execution layer is a Solidity-based vault that features:
 - **Agent Logic:** TypeScript / Python (FastAPI)
 - **Security:** OpenZeppelin Access Controls
 
-## 🤖 AI Disclosure & Transparency
+## AI Disclosure & Transparency
 
 In alignment with the hackathon's transparency criteria:
 - **AI-Assisted Development:** Generative AI was used to optimize the yield-routing algorithms and assist in the rapid prototyping of the SynAgent logic.
-- **Original Work:** The core architecture—specifically the integration of Mantle's LST/LRT rewards ($COOK) and the SynVault security model—is an original design by the founder.
+- **Original Work:** The core architecture, specifically the integration of Mantle's LST/LRT rewards ($COOK) and the SynVault security model—is an original design by the founder.
 
 ---
 
-## 🏁 Getting Started
+## Getting Started
 1. Visit the [Syn-A Dashboard](https://syn-a.netlify.app/).
 2. Connect your Mantle Wallet.
 3. Observe the AI-driven yield scouting in real-time.
